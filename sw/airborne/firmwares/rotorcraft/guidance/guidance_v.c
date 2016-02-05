@@ -91,6 +91,14 @@ PRINT_CONFIG_VAR(GUIDANCE_V_ADAPT_THROTTLE_ENABLED)
 #define GUIDANCE_V_MAX_ERR_ZD SPEED_BFP_OF_REAL(10.)
 #endif
 
+#ifndef GUIDANCE_V_MIN_ERR_ZDD
+#define GUIDANCE_V_MIN_ERR_ZDD SPEED_BFP_OF_REAL(-10.)
+#endif
+
+#ifndef GUIDANCE_V_MAX_ERR_ZDD
+#define GUIDANCE_V_MAX_ERR_ZDD SPEED_BFP_OF_REAL(10.)
+#endif
+
 #ifndef GUIDANCE_V_MAX_SUM_ERR
 #define GUIDANCE_V_MAX_SUM_ERR 2000000
 #endif
@@ -127,6 +135,15 @@ int32_t guidance_v_ki;
 
 int32_t guidance_v_z_sum_err;
 
+int32_t err_z;
+int32_t err_zd;
+int32_t err_zdd;
+
+int32_t fb_cmd_zi;
+int32_t fb_cmd_z;
+int32_t fb_cmd_zd;
+int32_t fb_cmd_zdd;
+
 int32_t guidance_v_thrust_coeff;
 
 
@@ -156,9 +173,18 @@ static void send_vert_loop(struct transport_tx *trans, struct link_device *dev)
                           &gv_adapt_P,
                           &gv_adapt_Xmeas,
                           &guidance_v_z_sum_err,
+                          &err_z,
+                          &err_zd,
+                          &err_zdd,
+                          &fb_cmd_zi,
+                          &fb_cmd_z,
+                          &fb_cmd_zd,
+                          &fb_cmd_zdd,
                           &guidance_v_ff_cmd,
                           &guidance_v_fb_cmd,
-                          &guidance_v_delta_t);
+                          &guidance_v_delta_t,
+                          &guidance_v_nominal_throttle,
+                          &vertical_mode);
 }
 
 static void send_tune_vert(struct transport_tx *trans, struct link_device *dev)
@@ -415,10 +441,12 @@ static void run_hover_loop(bool_t in_flight)
   guidance_v_zd_ref = gv_zd_ref << (INT32_SPEED_FRAC - GV_ZD_REF_FRAC);
   guidance_v_zdd_ref = gv_zdd_ref << (INT32_ACCEL_FRAC - GV_ZDD_REF_FRAC);
   /* compute the error to our reference */
-  int32_t err_z  = guidance_v_z_ref - stateGetPositionNed_i()->z;
+  err_z  = guidance_v_z_ref - stateGetPositionNed_i()->z;
   Bound(err_z, GUIDANCE_V_MIN_ERR_Z, GUIDANCE_V_MAX_ERR_Z);
-  int32_t err_zd = guidance_v_zd_ref - stateGetSpeedNed_i()->z;
+  err_zd = guidance_v_zd_ref - stateGetSpeedNed_i()->z;
   Bound(err_zd, GUIDANCE_V_MIN_ERR_ZD, GUIDANCE_V_MAX_ERR_ZD);
+  err_zdd = guidance_v_zd_ref - stateGetAccelNed_i()->z;
+  Bound(err_zdd, GUIDANCE_V_MIN_ERR_ZDD, GUIDANCE_V_MAX_ERR_ZDD);
 
   if (in_flight) {
     guidance_v_z_sum_err += err_z;
@@ -449,9 +477,16 @@ static void run_hover_loop(bool_t in_flight)
 
   /* our error feed back command                   */
   /* z-axis pointing down -> positive error means we need less thrust */
-  guidance_v_fb_cmd = ((-guidance_v_kp * err_z)  >> 7) +
+/*  guidance_v_fb_cmd = ((-guidance_v_kp * err_z)  >> 7) +
                       ((-guidance_v_kd * err_zd) >> 16) +
-                      ((-guidance_v_ki * guidance_v_z_sum_err) >> 16);
+                      ((-guidance_v_ki * guidance_v_z_sum_err) >> 16);*/
+
+  fb_cmd_zdd = 0;
+  fb_cmd_z = ((-guidance_v_kp * err_z)  >> 7);
+  fb_cmd_zd = ((-guidance_v_kd * err_zd) >> 16);
+  fb_cmd_zi = ((-guidance_v_ki * guidance_v_z_sum_err) >> 16);
+
+  guidance_v_fb_cmd = fb_cmd_z + fb_cmd_zd + fb_cmd_zi;
 
   guidance_v_delta_t = guidance_v_ff_cmd + guidance_v_fb_cmd;
 
