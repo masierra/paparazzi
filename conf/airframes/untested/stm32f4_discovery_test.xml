@@ -22,10 +22,8 @@
     </subsystem>
     <subsystem name="gps"           type="ublox"/>
     <subsystem name="stabilization" type="int_quat"/>
-    <subsystem name="ahrs"          type="int_cmpl_quat">
-      <define name="AHRS_GRAVITY_HEURISTIC_FACTOR" value="30"/>
-    </subsystem>
-    <subsystem name="ins"/>
+    <subsystem name="ahrs"          type="float_mlkf"/>
+    <subsystem name="ins" type="hff"/>
   </firmware>
 
   <firmware name="test_progs">
@@ -36,6 +34,8 @@
   </firmware>
 
   <modules main_freq="512">
+    <load name="gps_ubx_ucenter.xml"/>
+
   </modules>
 
   <servos driver="Pwm">
