@@ -53,6 +53,10 @@
 #include "subsystems/gps.h"
 #endif
 
+#if USE_CANARD
+#include "subsystems/node.h"
+#endif
+
 #if USE_BARO_BOARD
 #include "subsystems/sensors/baro.h"
 PRINT_CONFIG_MSG_VALUE("USE_BARO_BOARD is TRUE, reading onboard baro: ", BARO_BOARD)
@@ -200,6 +204,10 @@ STATIC_INLINE void main_init(void)
 
 #if USE_GPS
   gps_init();
+#endif
+
+#if USE_CANARD
+  node_init();
 #endif
 
   autopilot_init();
