@@ -31,7 +31,7 @@
 
     <subsystem name="telemetry"     type="transparent"/>
     <subsystem name="imu"           type="lisa_mx_v2.1"/>
-    <subsystem name="gps"           type="ublox"/>
+    <subsystem name="gps"           type="piksi"/>
     <subsystem name="stabilization" type="int_quat"/>
     <subsystem name="stabilization" type="rate"/>
     <subsystem name="libcanard"     type="node"/>
@@ -48,7 +48,7 @@
 
 
   <modules>
-    <load name="gps_ubx_ucenter.xml"/>
+    <!-- <load name="gps_ubx_ucenter.xml"/> -->
     <load name="geo_mag.xml"/>
     <load name="air_data.xml"/>
   </modules>

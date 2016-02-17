@@ -2,7 +2,7 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include <libcanard/src/canard.h>
+#include <canard.h>
 #include "subsystems/libcanard/actuator/canard_actuators.h"
 
 /// Arbitrary priority values

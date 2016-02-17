@@ -8,17 +8,18 @@
 #define PPZ_NODE_ID 1
 
 static CanardInstance canard_instance;
+static CanardPoolAllocatorBlock canard_buf[32];           // pool blocks
 
-#if PERIODIC_TELEMETRY
-#include "subsystems/datalink/telemetry.h"
+// #if PERIODIC_TELEMETRY
+// #include "subsystems/datalink/telemetry.h"
 
-static void send_canard_debug(struct transport_tx *trans, struct link_device *dev)
-{
-  pprz_msg_send_CANARD_DEBUG(trans, dev, AC_ID, 
-                              &canard_instance.allocator_space,
-                              &canard_instance.tx_queue_count);
-}
-#endif
+// static void send_canard_debug(struct transport_tx *trans, struct link_device *dev)
+// {
+//   pprz_msg_send_CANARD_DEBUG(trans, dev, AC_ID, 
+//                               &canard_instance.allocator_space,
+//                               &canard_instance.tx_queue_count);
+// }
+// #endif
 
 
 /*
@@ -86,6 +87,15 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
 
 }
 
+bool should_accept(const CanardInstance* ins, uint64_t* out_data_type_signature,
+                   uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id)
+{
+    *out_data_type_signature = 0x8899AABBCCDDEEFF;
+    return true;
+}
+
+// void canardInit(CanardInstance* out_ins,  void* mem_arena, size_t mem_arena_size,
+                // CanardOnTransferReception on_reception, CanardShouldAcceptTransfer should_accept)
 
 void node_init(void) {
   //initialize can hardware/callback
@@ -93,11 +103,11 @@ void node_init(void) {
   //DOWNLINK_SEND_INFO_MSG(DefaultChannel, DefaultDevice, strlen("init"), "init");
   //initialize canard instance
   canard_actuators_init();
-  canardInit(&canard_instance, (canardOnTransferReception)on_reception);
+  canardInit(&canard_instance, canard_buf, sizeof(canard_buf), on_reception, should_accept);
   canardSetLocalNodeID(&canard_instance, PPZ_NODE_ID);
-#if PERIODIC_TELEMETRY
-  register_periodic_telemetry(DefaultPeriodic, "CANARD_DEBUG", send_canard_debug);
-#endif
+// #if PERIODIC_TELEMETRY
+//   register_periodic_telemetry(DefaultPeriodic, "CANARD_DEBUG", send_canard_debug);
+// #endif
 }
 
 void node_periodic(void) {
