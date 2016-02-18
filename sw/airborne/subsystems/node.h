@@ -45,6 +45,8 @@ enum node_mode
 int publish_node_status(CanardInstance* ins, enum node_health health, enum node_mode mode, uint16_t vendor_specific_status_code);
 void node_handle_frame(uint32_t id, uint8_t *buf, uint8_t len);
 void on_reception(CanardInstance* ins, CanardRxTransfer* transfer);
+bool should_accept(const CanardInstance* ins, uint64_t* out_data_type_signature,
+                   uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id);
 extern void node_init(void);
 extern void node_periodic(void);
 

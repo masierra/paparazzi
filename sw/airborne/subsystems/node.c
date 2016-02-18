@@ -78,7 +78,6 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
             payload[i] = transfer->payload_head[i];
         }
     }
-    //DOWNLINK_SEND_DEBUG(DefaultChannel, DefaultDevice, transfer->payload_len, payload);
 
     if (transfer->data_type_id == 1010 && transfer->payload_len == sizeof(CommandArray)){
         canard_actuators_recieve_msg(payload);
@@ -90,7 +89,7 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
 bool should_accept(const CanardInstance* ins, uint64_t* out_data_type_signature,
                    uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id)
 {
-    *out_data_type_signature = 0x8899AABBCCDDEEFF;
+    *out_data_type_signature = CANARD_ACTUATORS_DTID;
     return true;
 }
 
@@ -98,6 +97,8 @@ bool should_accept(const CanardInstance* ins, uint64_t* out_data_type_signature,
                 // CanardOnTransferReception on_reception, CanardShouldAcceptTransfer should_accept)
 
 void node_init(void) {
+  struct CanardRxState state_rx;
+
   //initialize can hardware/callback
   ppz_can_init(node_handle_frame);
   //DOWNLINK_SEND_INFO_MSG(DefaultChannel, DefaultDevice, strlen("init"), "init");
