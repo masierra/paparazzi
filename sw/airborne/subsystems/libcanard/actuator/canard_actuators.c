@@ -1,20 +1,18 @@
 #include "canard_actuators.h"
 
-#include "subsystems/datalink/telemetry.h"
-
 static CommandArray commands;
 CanardActuators canard_actuators;
 
 
-// #if PERIODIC_TELEMETRY
-// #include "subsystems/datalink/telemetry.h"
+#if PERIODIC_TELEMETRY
+#include "subsystems/datalink/telemetry.h"
 
-// static void send_canard_actuators(struct transport_tx *trans, struct link_device *dev)
-// {
-//   pprz_msg_send_CANARD_ACTUATORS(trans, dev, AC_ID,
-//     CANARD_ACTUATORS_NB, canard_actuators.actuator_ids, CANARD_ACTUATORS_NB, canard_actuators.command_values);
-// }
-// #endif
+static void send_canard_actuators(struct transport_tx *trans, struct link_device *dev)
+{
+  pprz_msg_send_CANARD_ACTUATORS(trans, dev, AC_ID,
+    CANARD_ACTUATORS_NB, canard_actuators.actuator_ids, CANARD_ACTUATORS_NB, canard_actuators.command_values);
+}
+#endif
 
 void canard_actuators_init(void) {
   int i;
@@ -26,9 +24,9 @@ void canard_actuators_init(void) {
     canard_actuators.actuator_ids[i] = i;
     canard_actuators.command_values[i] = 1000;
   }
-// #if PERIODIC_TELEMETRY
-//   register_periodic_telemetry(DefaultPeriodic, "CANARD_ACTUATORS", send_canard_actuators);
-// #endif
+#if PERIODIC_TELEMETRY
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_CANARD_ACTUATORS, send_canard_actuators);
+#endif
 }
 
 int canard_publish_actuators(CanardInstance* ins) {
@@ -53,3 +51,12 @@ void canard_actuators_recieve_msg(void* payload) {
     canard_actuators.command_values[i] = received_commands->command_array[i].command_value;
   }
 }
+
+// void canard_set_actuators(void)
+// {
+//   int i;
+//   for (i=0; i<CANARD_ACTUATORS_NB; i++) {
+//     ActuatorPwmSet(i,canard_actuators.command_values[i]);
+//   }
+//   AllActuatorsCommit();
+// }

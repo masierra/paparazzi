@@ -30,6 +30,6 @@ extern CanardActuators canard_actuators;
 void canard_actuators_init(void);
 int canard_publish_actuators(CanardInstance* ins);
 void canard_actuators_recieve_msg(void* payload);
-
+// void canard_set_actuators(void);
 
 #endif /* CANARD_ACTUATORS_H */
