@@ -280,6 +280,10 @@ STATIC_INLINE void main_periodic(void)
   imu_periodic();
 #endif
 
+#ifdef CANARD_SENDER
+  node_periodic();
+#endif
+
   //FIXME: temporary hack, remove me
 #ifdef InsPeriodic
   InsPeriodic();
@@ -290,7 +294,15 @@ STATIC_INLINE void main_periodic(void)
   /* set actuators     */
   //actuators_set(autopilot_motors_on);
 #ifndef INTER_MCU_AP
+#ifndef CANARD_RECEIVER
   SetActuatorsFromCommands(commands, autopilot_mode);
+#else
+  int i;
+  for (i=0; i<CANARD_ACTUATORS_NB; i++) {
+    ActuatorPwmSet(i,canard_actuators.command_values[i]);
+  }
+  AllActuatorsCommit();
+#endif
 #else
   intermcu_set_actuators(commands, autopilot_mode);
 #endif
