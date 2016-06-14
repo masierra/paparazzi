@@ -1,6 +1,7 @@
 // @file: uavcan_node.c
 #include "std.h"
 #include "node.h"
+#include <string.h>
 #include <stdio.h>
 #include "mcu_periph/can.h"
 #include "mcu_periph/sys_time.h"
