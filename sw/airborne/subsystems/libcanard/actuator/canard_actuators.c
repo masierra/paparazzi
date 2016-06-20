@@ -1,4 +1,6 @@
 #include "canard_actuators.h"
+#include "generated/airframe.h"
+
 
 static CommandArray commands;     //outgoing commands
 CanardActuators canard_actuators; //received commands
@@ -66,3 +68,14 @@ void canard_actuators_recieve_msg(void* payload) {
 //   }
 //   AllActuatorsCommit();
 // }
+void canard_set_actuators(void)
+{
+  int i;
+  for (i=0; i<ACTUATORS_PWM_NB; i++) {
+    if (canard_actuators.command_values[i] != 0)
+    {
+      ActuatorPwmSet(i,canard_actuators.command_values[i]);
+    }
+  }
+  ActuatorsPwmCommit();
+}

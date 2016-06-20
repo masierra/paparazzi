@@ -297,14 +297,7 @@ STATIC_INLINE void main_periodic(void)
 #ifndef CANARD_RECEIVER
   SetActuatorsFromCommands(commands, autopilot_mode);
 #else
-  int i;
-  for (i=0; i<ACTUATORS_PWM_NB; i++) {
-    if (canard_actuators.command_values[i] != 0)
-    {
-      ActuatorPwmSet(i,canard_actuators.command_values[i]);
-    }
-  }
-  AllActuatorsCommit();
+  canard_set_actuators();
 #endif
 #else
   intermcu_set_actuators(commands, autopilot_mode);

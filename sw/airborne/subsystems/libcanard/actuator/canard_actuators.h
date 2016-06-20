@@ -31,6 +31,6 @@ void canard_actuators_init(void);
 void canard_set_actuator(uint8_t i, uint16_t value);
 int canard_publish_actuators(CanardInstance* ins);
 void canard_actuators_recieve_msg(void* payload);
-// void canard_set_actuators(void);
+void canard_set_actuators(void);
 
 #endif /* CANARD_ACTUATORS_H */
