@@ -298,8 +298,11 @@ STATIC_INLINE void main_periodic(void)
   SetActuatorsFromCommands(commands, autopilot_mode);
 #else
   int i;
-  for (i=0; i<CANARD_ACTUATORS_NB; i++) {
-    ActuatorPwmSet(i,canard_actuators.command_values[i]);
+  for (i=0; i<ACTUATORS_PWM_NB; i++) {
+    if (canard_actuators.command_values[i] != 0)
+    {
+      ActuatorPwmSet(i,canard_actuators.command_values[i]);
+    }
   }
   AllActuatorsCommit();
 #endif

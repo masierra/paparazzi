@@ -102,9 +102,10 @@ void node_init(void) {
 
   //initialize can hardware/callback
   ppz_can_init(node_handle_frame);
-  //DOWNLINK_SEND_INFO_MSG(DefaultChannel, DefaultDevice, strlen("init"), "init");
-  //initialize canard instance
+
+  //initialize actuators submodule
   canard_actuators_init();
+  //initialize canard instance
   canardInit(&canard_instance, canard_buf, sizeof(canard_buf), on_reception, should_accept);
   canardSetLocalNodeID(&canard_instance, PPZ_NODE_ID);
 // #if PERIODIC_TELEMETRY

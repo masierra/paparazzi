@@ -2,9 +2,9 @@
 #define CANARD_ACTUATORS_H
 
 #include "subsystems/node.h"
-#include "subsystems/actuators.h"
+// #include "subsystems/actuators.h"
 
-#define CANARD_ACTUATORS_NB ACTUATORS_NB
+#define CANARD_ACTUATORS_NB 8
 #define COMMAND_ARRAY_DTID 1010
 #define CANARD_ACTUATORS_DTID 0x26EBF643995F91A0ULL
 
@@ -28,6 +28,7 @@ typedef struct CanardActuators
 extern CanardActuators canard_actuators;
 
 void canard_actuators_init(void);
+void canard_set_actuator(uint8_t i, uint16_t value);
 int canard_publish_actuators(CanardInstance* ins);
 void canard_actuators_recieve_msg(void* payload);
 // void canard_set_actuators(void);

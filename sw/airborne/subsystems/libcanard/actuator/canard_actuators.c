@@ -1,7 +1,7 @@
 #include "canard_actuators.h"
 
-static CommandArray commands;
-CanardActuators canard_actuators;
+static CommandArray commands;     //outgoing commands
+CanardActuators canard_actuators; //received commands
 
 
 #if PERIODIC_TELEMETRY
@@ -18,7 +18,7 @@ void canard_actuators_init(void) {
   int i;
   for(i=0;i<CANARD_ACTUATORS_NB;i++) {
       commands.command_array[i].actuator_id = i;
-      commands.command_array[i].command_value = ((uint16_t)i)*111;
+      commands.command_array[i].command_value = 0; //((uint16_t)i)*222;
   }
   for(i=0;i<CANARD_ACTUATORS_NB;i++) {
     canard_actuators.actuator_ids[i] = i;
@@ -29,15 +29,21 @@ void canard_actuators_init(void) {
 #endif
 }
 
+void canard_set_actuator(uint8_t i, uint16_t value)
+{
+  commands.command_array[i].actuator_id = i;
+  commands.command_array[i].command_value = value;
+}
+
 int canard_publish_actuators(CanardInstance* ins) {
   static const uint16_t data_type_id = COMMAND_ARRAY_DTID;
   static uint8_t transfer_id;
-  int i;
+  // int i;
 
-  for(i=0;i<CANARD_ACTUATORS_NB;i++) {
-    commands.command_array[i].actuator_id = i;
-    commands.command_array[i].command_value = actuators[i];
-  }
+  // for(i=0;i<CANARD_ACTUATORS_NB;i++) {
+  //   commands.command_array[i].actuator_id = i;
+  //   commands.command_array[i].command_value = actuators[i];
+  // }
   uint64_t data_type_signature = CANARD_ACTUATORS_DTID;
   return canardBroadcast(ins, data_type_signature,
                            data_type_id, &transfer_id, 03, &commands, sizeof(commands));
