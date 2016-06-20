@@ -28,7 +28,7 @@
       <message name="OPTIC_FLOW_EST"         period="0.25"/>
       <message name="VECTORNAV_INFO"         period="0.5"/>
       <message name="ACTUATORS"              period="0.5"/>
-      <message name="CANARD_ACTUATORS"       period="0.5"/>
+      <message name="CANARD_ACTUATORS"       period="0.05"/>
     </mode>
 
     <mode name="ppm">

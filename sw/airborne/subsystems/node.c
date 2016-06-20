@@ -127,7 +127,7 @@ void node_periodic(void) {
     return;
   }
   // RunOnceEvery(9,canard_publish_actuators(&canard_instance));
-  if((get_sys_time_usec()-sendstring)>2500){
+  if((get_sys_time_usec()-sendstring)>2000){
     canard_publish_actuators(&canard_instance);
     sendstring = get_sys_time_usec();
   }
