@@ -297,7 +297,14 @@ STATIC_INLINE void main_periodic(void)
 #ifndef CANARD_RECEIVER
   SetActuatorsFromCommands(commands, autopilot_mode);
 #else
-  canard_set_actuators();
+  //check if watchdog has not timed out
+  if (canard_status_okay())
+  {
+    canard_set_actuators();
+  } else
+  {
+    SetActuatorsFromCommands(commands, autopilot_mode); //should be killed at all times
+  }
 #endif
 #else
   intermcu_set_actuators(commands, autopilot_mode);

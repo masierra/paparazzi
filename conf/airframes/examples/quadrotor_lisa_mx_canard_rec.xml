@@ -27,6 +27,7 @@
 
     <subsystem name="actuators"     type="pwm">
       <define name="SERVO_HZ" value="40"/>
+      <define name="USE_SERVOS_7AND8"/>
     </subsystem>
 
     <subsystem name="telemetry"     type="transparent"/>
@@ -61,7 +62,6 @@
     <servo name="D5" no="5" min="1000" neutral="1100" max="1900"/>
     <servo name="D6" no="6" min="1000" neutral="1100" max="1900"/>
     <servo name="D7" no="7" min="1000" neutral="1100" max="1900"/>
-
   </servos>
 
   <commands>
@@ -71,12 +71,15 @@
     <axis name="THRUST" failsafe_value="0"/>
   </commands>
 
-  <section name="MIXING" prefix="MOTOR_MIXING_">
-    <!-- front left (CW), front right (CCW), back right (CW), back left (CCW) -->
-    <define name="TYPE" value="QUAD_X"/>
-  </section>
-
   <command_laws>
+    <set servo="D0"  value="0"/>
+    <set servo="D1"  value="0"/>
+    <set servo="D2"  value="0"/>
+    <set servo="D3"  value="0"/>
+    <set servo="D4"  value="0"/>
+    <set servo="D5"  value="0"/>
+    <set servo="D6"  value="0"/>
+    <set servo="D7"  value="0"/>
   </command_laws>
 
   <section name="IMU" prefix="IMU_">

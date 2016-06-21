@@ -76,7 +76,7 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
         uint8_t i;
         for (i = 0; i<transfer->payload_len; i++)
         {
-            payload[i] = transfer->payload_head[i];
+          payload[i] = transfer->payload_head[i];
         }
     }
 
@@ -115,21 +115,24 @@ void node_init(void) {
 
 void node_periodic(void) {
   canardCleanupStaleTransfers(&canard_instance, (uint64_t)get_sys_time_usec());
-  // //char *str = "string poop";
-  static uint32_t sendstring;
+
+  static uint32_t t_since_last_pub;
   const CanardCANFrame* transmit_frame = canardPeekTxQueue(&canard_instance);
-  if (transmit_frame != NULL) {
+  if (transmit_frame != NULL)
+  {
     int ret;
     ret = ppz_can_transmit(transmit_frame->id, transmit_frame->data, transmit_frame->data_len);
-    if (ret != -1) {
+    if (ret != -1)
+    {
       canardPopTxQueue(&canard_instance);
     }
     return;
   }
-  // RunOnceEvery(9,canard_publish_actuators(&canard_instance));
-  if((get_sys_time_usec()-sendstring)>2000){
+
+  if((get_sys_time_usec()-t_since_last_pub)>2000)
+  {
     canard_publish_actuators(&canard_instance);
-    sendstring = get_sys_time_usec();
+    t_since_last_pub = get_sys_time_usec();
   }
 
   return;
