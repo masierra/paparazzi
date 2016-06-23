@@ -6,6 +6,8 @@
 #include "mcu_periph/can.h"
 #include "mcu_periph/sys_time.h"
 
+#include "subsystems/libcanard/node_status.h"
+
 #define PPZ_NODE_ID 1
 
 static CanardInstance canard_instance;
@@ -29,11 +31,12 @@ static CanardPoolAllocatorBlock canard_buf[32];           // pool blocks
 void node_handle_frame(uint32_t id, uint8_t *buf, uint8_t len) {
   CanardCANFrame canard_frame;
   canard_frame.id = id;
+
   memcpy(&canard_frame.data, buf, len);
   canard_frame.data_len = len;
-  //DOWNLINK_SEND_INFO_MSG(DefaultChannel, DefaultDevice, strlen("len"), buf);
-  canardHandleRxFrame(&canard_instance, &canard_frame, get_sys_time_usec());
 
+  // queue frame
+  canardHandleRxFrame(&canard_instance, &canard_frame, get_sys_time_usec());
 }
 
 /*
@@ -80,9 +83,20 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
         }
     }
 
-    if (transfer->data_type_id == 1010 && transfer->payload_len == sizeof(CommandArray)){
+    switch (transfer->data_type_id)
+    {
+      case(COMMAND_ARRAY_DTID):
         canard_actuators_recieve_msg(payload);
+      break;
+
+      case(NODE_STATUS_DTID):
+        node_status_receive_msg(payload);
+      break;
+
+      default:
+      break;
     }
+
     canardReleaseRxTransferPayload(ins, transfer);
 
 }
@@ -90,7 +104,7 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
 bool should_accept(const CanardInstance* ins, uint64_t* out_data_type_signature,
                    uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id)
 {
-    *out_data_type_signature = CANARD_ACTUATORS_DTID;
+    *out_data_type_signature = CANARD_ACTUATORS_SIG;
     return true;
 }
 
@@ -105,9 +119,11 @@ void node_init(void) {
 
   //initialize actuators submodule
   canard_actuators_init();
+
   //initialize canard instance
   canardInit(&canard_instance, canard_buf, sizeof(canard_buf), on_reception, should_accept);
   canardSetLocalNodeID(&canard_instance, PPZ_NODE_ID);
+
 // #if PERIODIC_TELEMETRY
 //   register_periodic_telemetry(DefaultPeriodic, "CANARD_DEBUG", send_canard_debug);
 // #endif
@@ -116,7 +132,16 @@ void node_init(void) {
 void node_periodic(void) {
   canardCleanupStaleTransfers(&canard_instance, (uint64_t)get_sys_time_usec());
 
-  static uint32_t t_since_last_pub;
+  static uint32_t last_actuators_ms;
+  static uint32_t last_node_status_ms;
+
+  // send out node status periodically
+  if ((get_sys_time_msec() - last_node_status_ms) > MSEC_TO_SEND_NODE_STATUS)
+  {
+    publish_node_status(&canard_instance);
+    last_node_status_ms = get_sys_time_msec();
+  }
+
   const CanardCANFrame* transmit_frame = canardPeekTxQueue(&canard_instance);
   if (transmit_frame != NULL)
   {
@@ -129,83 +154,13 @@ void node_periodic(void) {
     return;
   }
 
-  if((get_sys_time_usec()-t_since_last_pub)>2000)
+#ifdef CANARD_SENDER
+  if ((get_sys_time_msec() - last_actuators_ms) > MSEC_TO_SEND_ACTUATORS)
   {
     canard_publish_actuators(&canard_instance);
-    t_since_last_pub = get_sys_time_usec();
+    last_actuators_ms = get_sys_time_msec();
   }
+#endif
 
   return;
 }
-
-// /// Standard data type: uavcan.protocol.NodeStatus
-// int publish_node_status(CanardInstance* ins, enum node_health health, enum node_mode mode, uint16_t vendor_specific_status_code)
-// {
-//     // static uint64_t startup_timestamp_usec;
-//     // if (startup_timestamp_usec == 0)
-//     // {
-//     //     startup_timestamp_usec = (uint64_t)get_sys_time_usec();
-//     // }
-//     uint8_t i;
-//     uint8_t payload[7] = {0};
-//     for (i = 0;i<sizeof(payload);i++){
-//       payload[i] = i;
-//     }
-
-//     // // Uptime in seconds
-//     // const uint32_t uptime_sec = ((uint64_t)get_sys_time_usec() - startup_timestamp_usec) / 1000000ULL;
-//     // payload[0] = (uptime_sec >> 0)  & 0xFF;
-//     // payload[1] = (uptime_sec >> 8)  & 0xFF;
-//     // payload[2] = (uptime_sec >> 16) & 0xFF;
-//     // payload[3] = (uptime_sec >> 24) & 0xFF;
-
-//     // payload[0] = 0XFF;
-//     // payload[1] = 0XFF;
-//     // payload[2] = 0XFF;
-//     // // Health and mode
-//     // payload[4] = ((uint8_t)health << 6) | ((uint8_t)mode << 3);
-
-//     // // Vendor-specific status code
-//     // payload[5] = (vendor_specific_status_code >> 0) & 0xFF;
-//     // payload[6] = (vendor_specific_status_code >> 8) & 0xFF;
-
-//     static const uint16_t data_type_id = 341;
-//     static uint8_t transfer_id;
-//     return canardBroadcast(ins, data_type_id, &transfer_id, PRIORITY_LOW, payload, sizeof(payload));
-// }
-
-// // /// Standard data type: uavcan.protocol.NodeStatus
-// // int publish_node_status(CanardInstance* ins, enum node_health health, enum node_mode mode, uint16_t vendor_specific_status_code)
-// // {
-// //     // static uint64_t startup_timestamp_usec;
-// //     // if (startup_timestamp_usec == 0)
-// //     // {
-// //     //     startup_timestamp_usec = (uint64_t)get_sys_time_usec();
-// //     // }
-// //     uint8_t i;
-// //     uint8_t payload[7] = {0};
-// //     for (i = 0;i<sizeof(payload);i++){
-// //       payload[i] = i;
-// //     }
-
-// //     // // Uptime in seconds
-// //     // const uint32_t uptime_sec = ((uint64_t)get_sys_time_usec() - startup_timestamp_usec) / 1000000ULL;
-// //     // payload[0] = (uptime_sec >> 0)  & 0xFF;
-// //     // payload[1] = (uptime_sec >> 8)  & 0xFF;
-// //     // payload[2] = (uptime_sec >> 16) & 0xFF;
-// //     // payload[3] = (uptime_sec >> 24) & 0xFF;
-
-// //     // payload[0] = 0XFF;
-// //     // payload[1] = 0XFF;
-// //     // payload[2] = 0XFF;
-// //     // // Health and mode
-// //     // payload[4] = ((uint8_t)health << 6) | ((uint8_t)mode << 3);
-
-// //     // // Vendor-specific status code
-// //     // payload[5] = (vendor_specific_status_code >> 0) & 0xFF;
-// //     // payload[6] = (vendor_specific_status_code >> 8) & 0xFF;
-
-// //     static const uint16_t data_type_id = 341;
-// //     static uint8_t transfer_id;
-// //     return canardBroadcast(ins, data_type_id, &transfer_id, PRIORITY_LOW, payload, sizeof(payload));
-// // }

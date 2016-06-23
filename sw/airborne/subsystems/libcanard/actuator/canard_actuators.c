@@ -78,7 +78,7 @@ int canard_publish_actuators(CanardInstance* ins)
   static const uint16_t data_type_id = COMMAND_ARRAY_DTID;
   static uint8_t transfer_id;
 
-  uint64_t data_type_signature = CANARD_ACTUATORS_DTID;
+  uint64_t data_type_signature = CANARD_ACTUATORS_SIG;
   return canardBroadcast(ins, data_type_signature,
                            data_type_id, &transfer_id, 03, &commands, sizeof(commands));
 }

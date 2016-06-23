@@ -280,7 +280,7 @@ STATIC_INLINE void main_periodic(void)
   imu_periodic();
 #endif
 
-#ifdef CANARD_SENDER
+#ifdef USE_CANARD
   node_periodic();
 #endif
 
