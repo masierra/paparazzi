@@ -54,14 +54,14 @@
   </modules>
 
   <servos driver="Pwm">
-    <servo name="D0" no="0" min="1000" neutral="1100" max="1900"/>
-    <servo name="D1" no="1" min="1000" neutral="1100" max="1900"/>
-    <servo name="D2" no="2" min="1000" neutral="1100" max="1900"/>
-    <servo name="D3" no="3" min="1000" neutral="1100" max="1900"/>
-    <servo name="D4" no="4" min="1000" neutral="1100" max="1900"/>
-    <servo name="D5" no="5" min="1000" neutral="1100" max="1900"/>
-    <servo name="D6" no="6" min="1000" neutral="1100" max="1900"/>
-    <servo name="D7" no="7" min="1000" neutral="1100" max="1900"/>
+    <servo name="D0" no="0" min="1000" neutral="1500" max="1900"/>
+    <servo name="D1" no="1" min="1000" neutral="1500" max="1900"/>
+    <servo name="D2" no="2" min="1000" neutral="1500" max="1900"/>
+    <servo name="D3" no="3" min="1000" neutral="1500" max="1900"/>
+    <servo name="D4" no="4" min="1000" neutral="1500" max="1900"/>
+    <servo name="D5" no="5" min="1000" neutral="1500" max="1900"/>
+    <servo name="D6" no="6" min="1000" neutral="1500" max="1900"/>
+    <servo name="D7" no="7" min="1000" neutral="1500" max="1900"/>
   </servos>
 
   <commands>

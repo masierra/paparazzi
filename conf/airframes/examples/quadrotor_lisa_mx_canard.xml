@@ -64,14 +64,14 @@
   </servos>
   
   <servos driver="Canard">
-    <servo name="C0" no="0" min="1000" neutral="1100" max="1900"/>
-    <servo name="C1" no="1" min="1000" neutral="1100" max="1900"/>
-    <servo name="C2" no="2" min="1000" neutral="1100" max="1900"/>
-    <servo name="C3" no="3" min="1000" neutral="1100" max="1900"/>
-    <servo name="C4" no="4" min="1000" neutral="1100" max="1900"/>
-    <servo name="C5" no="5" min="1000" neutral="1100" max="1900"/>
-    <servo name="C6" no="6" min="1000" neutral="1100" max="1900"/>
-    <servo name="C7" no="7" min="1000" neutral="1100" max="1900"/>
+    <servo name="C0" no="0" min="1000" neutral="1500" max="1900"/>
+    <servo name="C1" no="1" min="1000" neutral="1500" max="1900"/>
+    <servo name="C2" no="2" min="1000" neutral="1500" max="1900"/>
+    <servo name="C3" no="3" min="1000" neutral="1500" max="1900"/>
+    <servo name="C4" no="4" min="1000" neutral="1500" max="1900"/>
+    <servo name="C5" no="5" min="1000" neutral="1500" max="1900"/>
+    <servo name="C6" no="6" min="1000" neutral="1500" max="1900"/>
+    <servo name="C7" no="7" min="1000" neutral="1500" max="1900"/>
   </servos>
 
   <commands>
