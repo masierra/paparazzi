@@ -27,8 +27,13 @@
       <message name="SURVEY"                 period="2.5"/>
       <message name="OPTIC_FLOW_EST"         period="0.25"/>
       <message name="VECTORNAV_INFO"         period="0.5"/>
+    </mode>
+
+    <mode name="canard">
       <message name="ACTUATORS"              period="0.5"/>
       <message name="CANARD_ACTUATORS"       period="0.05"/>
+      <message name="CANARD_NODE_STATUS"     period="1.0"/>
+      <message name="ROTORCRAFT_RADIO_CONTROL" period="0.5"/>
     </mode>
 
     <mode name="ppm">

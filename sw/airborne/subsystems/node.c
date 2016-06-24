@@ -6,9 +6,11 @@
 #include "mcu_periph/can.h"
 #include "mcu_periph/sys_time.h"
 
-#include "subsystems/libcanard/node_status.h"
-
+#ifdef CANARD_SENDER
 #define PPZ_NODE_ID 1
+#else
+#define PPZ_NODE_ID 2
+#endif
 
 static CanardInstance canard_instance;
 static CanardPoolAllocatorBlock canard_buf[32];           // pool blocks
@@ -46,41 +48,39 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
     uint8_t payload[transfer->payload_len];
     if (transfer->payload_len > 7)
     {
-    CanardBufferBlock* block = transfer->payload_middle;
-    uint8_t i, index = 0;
+      CanardBufferBlock* block = transfer->payload_middle;
+      uint8_t i, index = 0;
 
-    if(CANARD_RX_PAYLOAD_HEAD_SIZE > 0)
-    {
-        for (i=0; i < CANARD_RX_PAYLOAD_HEAD_SIZE; i++)
+      if (CANARD_RX_PAYLOAD_HEAD_SIZE > 0)
+      {
+        for (i = 0; i < CANARD_RX_PAYLOAD_HEAD_SIZE; i++, index++)
         {
-            payload[i] = transfer->payload_head[i];
+          payload[i] = transfer->payload_head[i];
         }
-        index = i;
-    }
+      }
 
-    for (i=0; index < (CANARD_RX_PAYLOAD_HEAD_SIZE + transfer->middle_len); i++, index++)
-    {
+      for (i=0; index < (CANARD_RX_PAYLOAD_HEAD_SIZE + transfer->middle_len); i++, index++)
+      {
         payload[index] = block->data[i];
-        if(i==CANARD_BUFFER_BLOCK_DATA_SIZE-1)
+        if (i==CANARD_BUFFER_BLOCK_DATA_SIZE - 1)
         {
             i = -1;
             block = block->next;
         }
-    }
-    int tail_len = transfer->payload_len - (CANARD_RX_PAYLOAD_HEAD_SIZE + transfer->middle_len);
-    for (i=0; i<(tail_len);i++, index++)
+      }
+
+      int tail_len = transfer->payload_len - (CANARD_RX_PAYLOAD_HEAD_SIZE + transfer->middle_len);
+      for (i=0; i<(tail_len);i++, index++)
+      {
+        payload[index] = transfer->payload_tail[i];
+      }
+    } else
     {
-            payload[index] = transfer->payload_tail[i];
-    }
-    
-    }
-    else
-    {
-        uint8_t i;
-        for (i = 0; i<transfer->payload_len; i++)
-        {
-          payload[i] = transfer->payload_head[i];
-        }
+      uint8_t i;
+      for (i = 0; i<transfer->payload_len; i++)
+      {
+        payload[i] = transfer->payload_head[i];
+      }
     }
 
     switch (transfer->data_type_id)
@@ -90,7 +90,7 @@ void on_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
       break;
 
       case(NODE_STATUS_DTID):
-        node_status_receive_msg(payload);
+        node_status_receive_msg(payload, transfer->source_node_id);
       break;
 
       default:
@@ -112,13 +112,14 @@ bool should_accept(const CanardInstance* ins, uint64_t* out_data_type_signature,
                 // CanardOnTransferReception on_reception, CanardShouldAcceptTransfer should_accept)
 
 void node_init(void) {
-  struct CanardRxState state_rx;
-
   //initialize can hardware/callback
   ppz_can_init(node_handle_frame);
 
   //initialize actuators submodule
   canard_actuators_init();
+
+  //initialize node_status
+  canard_node_status_init();
 
   //initialize canard instance
   canardInit(&canard_instance, canard_buf, sizeof(canard_buf), on_reception, should_accept);
@@ -132,8 +133,8 @@ void node_init(void) {
 void node_periodic(void) {
   canardCleanupStaleTransfers(&canard_instance, (uint64_t)get_sys_time_usec());
 
-  static uint32_t last_actuators_ms;
-  static uint32_t last_node_status_ms;
+  static uint32_t last_actuators_ms = 0;
+  static uint32_t last_node_status_ms = 0;
 
   // send out node status periodically
   if ((get_sys_time_msec() - last_node_status_ms) > MSEC_TO_SEND_NODE_STATUS)
@@ -142,6 +143,7 @@ void node_periodic(void) {
     last_node_status_ms = get_sys_time_msec();
   }
 
+  // transmit anything in the queue
   const CanardCANFrame* transmit_frame = canardPeekTxQueue(&canard_instance);
   if (transmit_frame != NULL)
   {
@@ -154,6 +156,7 @@ void node_periodic(void) {
     return;
   }
 
+  //  queue canard actuators
 #ifdef CANARD_SENDER
   if ((get_sys_time_msec() - last_actuators_ms) > MSEC_TO_SEND_ACTUATORS)
   {

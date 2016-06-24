@@ -8,7 +8,7 @@ $(TARGET).srcs   += $(SRC_SUBSYSTEMS)/node.c
 ap.CFLAGS += -I$(PAPARAZZI_SRC)/sw/ext/libcanard/src
 ap.srcs		+= $(PAPARAZZI_SRC)/sw/ext/libcanard/src/canard.c
 
-
+$(TARGET).srcs   += $(SRC_SUBSYSTEMS)/libcanard/node_status.c
 $(TARGET).srcs   += $(SRC_SUBSYSTEMS)/libcanard/actuator/canard_actuators.c
 
 #$(TARGET).srcs   += $(SRC_SUBSYSTEMS)/canard_internals.h

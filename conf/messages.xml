@@ -1916,7 +1916,11 @@
     <field name="g2_r" type="float"/>
   </message>
 
-  <!--217 is free -->
+  <message name="CANARD_NODE_STATUS" id="217">
+    <field name="node_id" type="uint8"/>
+    <field name="uptime"  type="uint32"/>
+    <field name="status"  type="uint8" values="LOST|OKAY"/>
+  </message>
 
   <message name="BEBOP_ACTUATORS" id="218">
     <field name="cmd_thrust" type="int32"/>

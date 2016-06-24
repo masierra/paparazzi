@@ -31,7 +31,7 @@
 static CommandArray commands;     //outgoing commands
 CanardActuators canard_actuators; //received commands
 
-uint32_t t_since_last_msg;
+uint32_t t_since_last_actuators;
 
 #if PERIODIC_TELEMETRY
 #include "subsystems/datalink/telemetry.h"
@@ -47,7 +47,7 @@ static void send_canard_actuators(struct transport_tx *trans, struct link_device
 /** init */
 void canard_actuators_init(void)
 {
-  t_since_last_msg = 0;
+  t_since_last_actuators = 0;
 
   int i;
   for(i=0;i<CANARD_ACTUATORS_NB;i++)
@@ -86,7 +86,7 @@ int canard_publish_actuators(CanardInstance* ins)
 /** callback for libcanard actuators message*/
 void canard_actuators_recieve_msg(void* payload)
 {
-  t_since_last_msg = get_sys_time_msec();
+  t_since_last_actuators = get_sys_time_msec();
 
   CommandArray *received_commands = payload;
   uint8_t i;
@@ -99,7 +99,7 @@ void canard_actuators_recieve_msg(void* payload)
 /** return FALSE if canard_actuators_watchdog has timed out*/
 bool canard_status_okay(void)
 {
-  if (get_sys_time_msec() - t_since_last_msg > CANARD_ACTUATORS_TIMEOUT_MS)
+  if (get_sys_time_msec() - t_since_last_actuators > CANARD_ACTUATORS_TIMEOUT_MS)
   {
     return FALSE;
   } else

@@ -23,13 +23,15 @@
  * @file subsystems/libcanard/node_status.h
  * publish and receive node status
  */
-#include "subsystems/node.h"
+#ifndef NODE_STATUS_H
+#define NODE_STATUS_H
 
-#include "mcu_periph/sys_time.h"
+#include "subsystems/node.h"
 
 // data type paremeters
 #define NODE_STATUS_DTID 341
 #define NODE_STATUS_SIG 0xF0868D0C1A7C6F1
+#define NODE_STATUS_TIMEOUT_MS 3000
 
 // constants
 #define HEALTH_OK        0
@@ -52,41 +54,11 @@ typedef struct
     uint16_t vendor_specific_status_code;
 } uavcan_protocol_NodeStatus;
 
-uavcan_protocol_NodeStatus node_status;
-
+void canard_node_status_init(void);
+void node_status_receive_msg(void* payload, uint8_t source_node_id);
 void uavcan_protocol_NodeStatus__deserialize(uavcan_protocol_NodeStatus *out, uint8_t *buffer);
 void uavcan_protocol_NodeStatus__serialize(uint8_t *buffer, uavcan_protocol_NodeStatus value);
 int publish_node_status(CanardInstance* ins);
+bool canard_node_status_okay(void);
 
-void uavcan_protocol_NodeStatus__deserialize(uavcan_protocol_NodeStatus *out, uint8_t *buffer)
-{
-    out->uptime_sec = (buffer[0] << 0) | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
-    out->health = (buffer[4] >> 6) & 0x3;
-    out->mode = (buffer[4] >> 3) & 0x7;
-    out->sub_mode = (buffer[4] >> 0) & 0x7;
-    out->vendor_specific_status_code = (buffer[5] << 0) | (buffer[6] << 8);
-}
-
-void uavcan_protocol_NodeStatus__serialize(uint8_t *buffer, uavcan_protocol_NodeStatus value)
-{
-    buffer[0] = (value.uptime_sec >> 0)  & 0xFF;
-    buffer[1] = (value.uptime_sec >> 8)  & 0xFF;
-    buffer[2] = (value.uptime_sec >> 16) & 0xFF;
-    buffer[3] = (value.uptime_sec >> 24) & 0xFF;
-    buffer[4] = (value.health << 6) | (value.mode << 3) | (value.sub_mode << 0);
-    buffer[5] = (value.vendor_specific_status_code >> 0) & 0xFF;
-    buffer[6] = (value.vendor_specific_status_code >> 8) & 0xFF;
-}
-
-int publish_node_status(CanardInstance* ins)
-{
-    uint8_t payload[7];
-
-    uavcan_protocol_NodeStatus__serialize(payload, node_status);
-
-    static const uint16_t data_type_id = NODE_STATUS_DTID;
-    static uint8_t transfer_id;
-    uint64_t data_type_signature = NODE_STATUS_SIG;
-    return canardBroadcast(ins, data_type_signature,
-                           data_type_id, &transfer_id, PRIORITY_LOW, payload, sizeof(payload));
-}
+#endif /* NODE_STATUS_H */

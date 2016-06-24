@@ -4,6 +4,7 @@
 
 #include <canard.h>
 #include "subsystems/libcanard/actuator/canard_actuators.h"
+#include "subsystems/libcanard/node_status.h"
 
 /// Arbitrary priority values
 #define PRIORITY_HIGHEST 0
